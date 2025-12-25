@@ -1,0 +1,73 @@
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/app/generated/prisma"
+}
+ 
+datasource db {
+  provider = "postgresql"
+  url      =  env("DATABASE_URL")
+}
+
+
+model Article {
+  id String @id @default(cuid()) @unique
+  title String
+  content String
+  summary String
+  userId String
+  user User @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  quizzes Quiz[]
+}
+model User {
+  id String @id @default(cuid()) @unique
+  clerkId String @unique 
+  email String @unique
+  name String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  articles Article[]
+  // quizAttempts QuizAttempt[],
+  userScores UserScores[]
+}
+
+model Quiz {
+  id String @id @default(cuid())
+  question String
+  options String[]
+  answer String
+  articleId String
+  article Article @relation(fields: [articleId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  // quizAttempts QuizAttempt[]
+  userScores UserScores[]
+}
+
+// model QuizAttempt {
+//   id String @id @default(cuid()) @unique
+//   userId String
+//   user User @relation(fields: [userId], references: [id])
+// }
+
+model UserScores {
+   id String @id @default(cuid()) @unique
+   userId String
+   user User @relation(fields: [userId], references: [id])
+   quizId String
+   quiz Quiz @relation(fields: [quizId], references: [id])
+  }
+  
+
+
+
+  model QuizResult {
+  id        String   @id @default(cuid())
+  title     String
+  content   String
+  score     Int
+  total     Int
+  createdAt DateTime @default(now())
+}
