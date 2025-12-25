@@ -6,6 +6,7 @@ type QuizQuestion = {
   question: string;
   options: string[];
   answer: string;
+  articleId: String | "";
 };
 
 type QuizAIResponse = {
@@ -106,7 +107,7 @@ ${body.content}
         question: q.question,
         options: q.options,
         answer: q.answer,
-        articleId: body.articleId,
+        articleId: q.articleId ?? "",
       })),
     });
 
