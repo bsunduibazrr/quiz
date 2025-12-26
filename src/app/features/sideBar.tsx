@@ -15,7 +15,7 @@ export const SideBarSection = ({
 }) => {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const panelRef = useRef<HTMLDivElement | null>(null);
+  const ref = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     const fetchHistory = async () => {
@@ -61,7 +61,7 @@ export const SideBarSection = ({
       <AnimatePresence>
         {open && (
           <motion.div
-            ref={panelRef}
+            ref={ref}
             initial={{ x: -50, opacity: 0 }}
             animate={{ x: 72, opacity: 1 }}
             exit={{ x: -50, opacity: 0 }}
