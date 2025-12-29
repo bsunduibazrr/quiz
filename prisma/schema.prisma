@@ -61,12 +61,12 @@ model UserScores {
   
 
 
-
-  model QuizResult {
+model QuizResult {
   id        String   @id @default(cuid())
   title     String
   content   String
   score     Int
   total     Int
+  userId    String  
   createdAt DateTime @default(now())
 }
