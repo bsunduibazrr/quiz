@@ -80,7 +80,13 @@ export const SideBarSection = ({
 
             <div className="max-h-[85%] overflow-y-auto">
               {loading ? (
-                <p className="text-center text-gray-500 mt-4">Loading...</p>
+                <div className="flex flex-col gap-2">
+                  <div className="w-45 h-5 bg-[#e4e4e7]"></div>
+                  <div className="w-45 h-5 bg-[#e4e4e7]"></div>
+                  <div className="w-45 h-5 bg-[#e4e4e7]"></div>
+                  <div className="w-45 h-5 bg-[#e4e4e7]"></div>
+                  <div className="w-45 h-5 bg-[#e4e4e7]"></div>
+                </div>
               ) : (
                 Object.entries(groupedHistory).map(([dateKey, items]: any) => (
                   <div key={dateKey} className="mb-5">

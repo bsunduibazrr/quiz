@@ -6,7 +6,6 @@ type QuizQuestion = {
   question: string;
   options: string[];
   answer: string;
-  articleId: string | "";
 };
 
 type QuizAIResponse = {
@@ -101,16 +100,17 @@ ${body.content}
     if (!quizJson.questions.length) {
       return NextResponse.json({ error: "questions hoosn" }, { status: 500 });
     }
-
     await prisma.quiz.createMany({
       data: quizJson.questions.map((q) => ({
         question: q.question,
         options: q.options,
         answer: q.answer,
-        articleId: q.articleId ?? "",
+        articleId: body.articleId!,
       })),
     });
-
+    if (!body.articleId) {
+      throw new Error("articleId bhgui");
+    }
     return NextResponse.json({ questions: quizJson.questions });
   } catch (err) {
     console.error("quiz error:", err);
