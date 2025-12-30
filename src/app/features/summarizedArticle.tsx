@@ -111,7 +111,6 @@ export const SummerizedSection = ({
               <p className="text-lg sm:text-[24px] font-semibold text-black">
                 {expandedTitle}
               </p>
-              <p className="text-sm mt-2 text-black">{expandedContent}</p>
             </div>
 
             <div>
@@ -122,7 +121,9 @@ export const SummerizedSection = ({
                 </p>
               </div>
 
-              <p className="text-sm text-black">{expandedContent}</p>
+              <p className="text-sm text-black">
+                {expandedContent.slice(0, 350)}...
+              </p>
 
               <div className="flex justify-end mt-2">
                 <span
@@ -138,10 +139,10 @@ export const SummerizedSection = ({
               <button
                 onClick={handleTakeQuiz}
                 disabled={loading}
-                className={`mt-4 w-full sm:w-36 h-10 rounded-lg text-white  ${
+                className={`mt-4 w-full sm:w-36 h-10 rounded-lg text-white transition-all duration-300 transform  ${
                   loading
                     ? "bg-gray-400 cursor-not-allowed"
-                    : "bg-black hover:bg-gray-900 cursor-pointer"
+                    : "bg-black hover:bg-gray-900 cursor-pointer hover:-translate-y-1 hover:scale-105 hover:shadow-xl active:scale-100 active:translate-y-0"
                 }`}
               >
                 {loading ? "Generating quiz..." : "Take quiz"}

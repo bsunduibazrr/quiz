@@ -25,7 +25,7 @@ export async function POST(request: Request) {
           role: "user",
           parts: [
             {
-              text: `Summarize briefly in 2-3 sentences\nTitle: ${title}\nContent:\n${content}`,
+              text: `Summarize briefly in 6-7 sentences\nTitle: ${title}\nContent:\n${content}`,
             },
           ],
         },

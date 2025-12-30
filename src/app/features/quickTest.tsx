@@ -39,6 +39,7 @@ export const QuickTest = ({
   const [score, setScore] = useState(0);
   const [showResult, setShowResult] = useState(false);
   const [answers, setAnswers] = useState<AnswerRecord[]>([]);
+  const [saving, setSaving] = useState(false);
 
   const total = questions.length;
   const current = questions[step];
@@ -146,32 +147,56 @@ export const QuickTest = ({
                 setShowResult(false);
               }}
             >
-              <span className="flex items-center gap-2 justify-center text-black">
+              <span className="flex items-center gap-2 justify-center text-black transition-all duration-300 transform hover:-translate-y-1 hover:scale-105 hover:shadow-xl active:scale-100 active:translate-y-0">
                 <RefreshLogo /> Restart
               </span>
             </button>
 
             <button
-              className="flex-1 bg-black text-white rounded-lg py-2 cursor-pointer"
+              disabled={saving}
+              className={`flex-1 rounded-lg py-2  cursor-pointer transition-all duration-300 transform
+    ${
+      saving
+        ? "bg-gray-400 text-white cursor-not-allowed"
+        : "bg-black text-white hover:-translate-y-1 hover:scale-105 hover:shadow-xl active:scale-100 active:translate-y-0"
+    }`}
               onClick={async () => {
-                const res = await fetch("/api/quiz-result", {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({
-                    title,
-                    content,
-                    score,
-                    total,
-                  }),
-                });
+                if (saving) return;
 
-                const saved = await res.json();
+                setSaving(true);
 
-                onSaved(saved);
+                try {
+                  const res = await fetch("/api/quiz-result", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                      title,
+                      content,
+                      score,
+                      total,
+                    }),
+                  });
+
+                  if (!res.ok) {
+                    throw new Error("Save failed");
+                  }
+
+                  const saved = await res.json();
+
+                  onSaved(saved);
+
+                  setShowQuickTest(false);
+                } catch (err) {
+                  console.error(err);
+                  alert("Save hiihd aldaa");
+                } finally {
+                  setSaving(false);
+                }
               }}
             >
               <span className="flex items-center gap-2 justify-center">
-                <SaveLogo /> Save & Leave
+                <SaveLogo />
+                {saving ? "Saving..." : "Save & Leave"}
               </span>
             </button>
           </div>
@@ -203,7 +228,7 @@ export const QuickTest = ({
               <button
                 key={opt}
                 onClick={() => selectOption(opt)}
-                className={`h-11 rounded-md border text-black font-medium cursor-pointer transition ${
+                className={`min-h-11 rounded-md border text-black font-medium cursor-pointer transition ${
                   selected
                     ? isCorrect
                       ? "bg-green-300 border-green-600"
