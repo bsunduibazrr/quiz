@@ -1,37 +1,56 @@
 import prisma from "@/lib/prisma";
+import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 
-type Types = {
-  title: string;
-  content: string;
-  score: number;
-  total: number;
-};
-
 export async function GET() {
-  const history = await prisma.quizResult.findMany({
-    orderBy: { createdAt: "desc" },
-  });
+  try {
+    const { userId } = await auth();
 
-  return NextResponse.json(history);
+    if (!userId) {
+      return NextResponse.json([], { status: 200 });
+    }
+
+    const history = await prisma.quizResult.findMany({
+      where: { userId },
+      orderBy: { createdAt: "desc" },
+    });
+
+    return NextResponse.json(history);
+  } catch (e) {
+    return NextResponse.json(
+      { error: "History awahad aldaa" },
+      { status: 500 }
+    );
+  }
 }
 
 export async function POST(req: Request) {
   try {
-    const body = await req.json();
+    const { userId } = await auth();
+
+    if (!userId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { title, content, score, total } = await req.json();
+
+    if (!title || typeof score !== "number" || typeof total !== "number") {
+      return NextResponse.json({ error: "Buruu input" }, { status: 400 });
+    }
 
     const created = await prisma.quizResult.create({
       data: {
-        title: body.title,
-        content: body.content,
-        score: body.score,
-        total: body.total,
-        userId: body.userId,
+        title,
+        content: content || "",
+        score,
+        total,
+        userId,
       },
     });
 
-    return NextResponse.json(created);
+    return NextResponse.json(created, { status: 201 });
   } catch (e) {
+    console.error(e);
     return NextResponse.json(
       { error: "History hadgalhd aldaa" },
       { status: 500 }

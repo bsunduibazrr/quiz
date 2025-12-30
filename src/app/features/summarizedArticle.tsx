@@ -50,7 +50,7 @@ export const SummerizedSection = ({
         }),
       });
 
-      if (!res.ok) throw new Error("Quiz generate failed");
+      if (!res.ok) throw new Error("Quiz uusghd alda");
 
       const data = await res.json();
 
