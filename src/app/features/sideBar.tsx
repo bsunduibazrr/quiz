@@ -53,7 +53,10 @@ export const SideBarSection = ({
   return (
     <div className="relative">
       <div className="h-screen bg-white border-r w-[72px] flex justify-center">
-        <div className="pt-4 cursor-pointer" onClick={() => setOpen((p) => !p)}>
+        <div
+          className="pt-4 cursor-pointer active:scale-95 transition"
+          onClick={() => setOpen((p) => !p)}
+        >
           <SideBar />
         </div>
       </div>
@@ -66,7 +69,7 @@ export const SideBarSection = ({
             animate={{ x: 72, opacity: 1 }}
             exit={{ x: -50, opacity: 0 }}
             transition={{ duration: 0.25 }}
-            className="absolute top-0 h-screen w-[300px] bg-white border-r shadow-lg z-50 p-4"
+            className="absolute top-0 h-screen w-[300px] max-sm:w-[100px] bg-white border-r shadow-lg z-50 p-4"
           >
             <div className="flex justify-between items-center mb-4">
               <p className="text-lg font-bold text-black">History</p>
@@ -79,48 +82,58 @@ export const SideBarSection = ({
             </div>
 
             <div className="max-h-[85%] overflow-y-auto">
-              {loading ? (
-                <div className="flex flex-col gap-2">
-                  <div className="w-45 h-5 bg-[#e4e4e7]"></div>
-                  <div className="w-45 h-5 bg-[#e4e4e7]"></div>
-                  <div className="w-45 h-5 bg-[#e4e4e7]"></div>
-                  <div className="w-45 h-5 bg-[#e4e4e7]"></div>
-                  <div className="w-45 h-5 bg-[#e4e4e7]"></div>
+              {!groupedHistory ? (
+                <div>
+                  <h4>History alga</h4>
                 </div>
               ) : (
-                Object.entries(groupedHistory).map(([dateKey, items]: any) => (
-                  <div key={dateKey} className="mb-5">
-                    <p className="text-xs font-semibold text-gray-500 mb-2">
-                      {getDateLabel(dateKey)}
-                    </p>
-                    <div className="flex flex-col gap-1">
-                      {items.map((h: any) => {
-                        const isActive = activeId === h.id;
-                        return (
-                          <button
-                            key={h.id}
-                            onClick={() =>
-                              onSelectHistory({
-                                id: h.id,
-                                expandedTitle: h.title,
-                                expandedContent: h.content,
-                              })
-                            }
-                            className={`text-left p-2 rounded transition cursor-pointer ${
-                              isActive
-                                ? "bg-black text-white"
-                                : "hover:bg-gray-100 text-black"
-                            }`}
-                          >
-                            <p className="text-sm font-semibold truncate">
-                              {h.title}
-                            </p>
-                          </button>
-                        );
-                      })}
+                <div>
+                  {loading ? (
+                    <div className="flex flex-col gap-2">
+                      <div className="w-45 h-5 bg-[#e4e4e7]"></div>
+                      <div className="w-45 h-5 bg-[#e4e4e7]"></div>
+                      <div className="w-45 h-5 bg-[#e4e4e7]"></div>
+                      <div className="w-45 h-5 bg-[#e4e4e7]"></div>
+                      <div className="w-45 h-5 bg-[#e4e4e7]"></div>
                     </div>
-                  </div>
-                ))
+                  ) : (
+                    Object.entries(groupedHistory).map(
+                      ([dateKey, items]: any) => (
+                        <div key={dateKey} className="mb-5">
+                          <p className="text-xs font-semibold text-gray-500 mb-2">
+                            {getDateLabel(dateKey)}
+                          </p>
+                          <div className="flex flex-col gap-1">
+                            {items.map((h: any) => {
+                              const isActive = activeId === h.id;
+                              return (
+                                <button
+                                  key={h.id}
+                                  onClick={() =>
+                                    onSelectHistory({
+                                      id: h.id,
+                                      expandedTitle: h.title,
+                                      expandedContent: h.content,
+                                    })
+                                  }
+                                  className={`text-left p-2 rounded transition cursor-pointer ${
+                                    isActive
+                                      ? "bg-black text-white"
+                                      : "hover:bg-gray-100 text-black"
+                                  }`}
+                                >
+                                  <p className="text-sm font-semibold truncate">
+                                    {h.title}
+                                  </p>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )
+                    )
+                  )}
+                </div>
               )}
             </div>
           </motion.div>
