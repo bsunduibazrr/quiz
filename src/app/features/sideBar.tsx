@@ -69,7 +69,7 @@ export const SideBarSection = ({
             animate={{ x: 72, opacity: 1 }}
             exit={{ x: -50, opacity: 0 }}
             transition={{ duration: 0.25 }}
-            className="absolute top-0 h-screen w-[300px] max-sm:w-[100px] bg-white border-r shadow-lg z-50 p-4"
+            className="absolute top-0 h-screen w-[300px]  bg-white border-r shadow-lg z-50 p-4"
           >
             <div className="flex justify-between items-center mb-4">
               <p className="text-lg font-bold text-black">History</p>
