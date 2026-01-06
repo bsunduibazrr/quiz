@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { SideBar } from "../_components/icons/icon";
 import { motion, AnimatePresence } from "framer-motion";
+import { useUser } from "@clerk/nextjs"; // Хэрэглэгчийн нэвтрэлт шалгах
 
 export const SideBarSection = ({
   history,
@@ -16,22 +17,7 @@ export const SideBarSection = ({
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const ref = useRef<HTMLDivElement | null>(null);
-
-  useEffect(() => {
-    const fetchHistory = async () => {
-      setLoading(true);
-      try {
-        const res = await fetch("/api/history");
-        const data = await res.json();
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchHistory();
-  }, []);
+  const { isSignedIn } = useUser();
 
   const formatDateKey = (date: Date) => date.toLocaleDateString("en-CA");
 
@@ -69,7 +55,7 @@ export const SideBarSection = ({
             animate={{ x: 72, opacity: 1 }}
             exit={{ x: -50, opacity: 0 }}
             transition={{ duration: 0.25 }}
-            className="absolute top-0 h-screen w-[300px]  bg-white border-r shadow-lg z-50 p-4"
+            className="absolute top-0 h-screen w-[300px] max-sm:w-[220px] bg-white border-r shadow-lg z-50 p-4"
           >
             <div className="flex justify-between items-center mb-4">
               <p className="text-lg font-bold text-black">History</p>
@@ -82,58 +68,57 @@ export const SideBarSection = ({
             </div>
 
             <div className="max-h-[85%] overflow-y-auto">
-              {!groupedHistory ? (
-                <div>
-                  <h4>History alga</h4>
+              {!isSignedIn ? (
+                <div className="flex flex-col items-center justify-center mt-10">
+                  <p className="text-sm text-gray-500 mb-4 text-center">
+                    Please log in to see your history
+                  </p>
+                </div>
+              ) : history.length === 0 ? (
+                <p className="text-sm text-gray-500 mt-10 text-center">
+                  No history yet
+                </p>
+              ) : loading ? (
+                <div className="flex flex-col gap-2">
+                  {[...Array(5)].map((_, i) => (
+                    <div
+                      key={i}
+                      className="w-full h-5 bg-gray-200 rounded animate-pulse"
+                    ></div>
+                  ))}
                 </div>
               ) : (
-                <div>
-                  {loading ? (
-                    <div className="flex flex-col gap-2">
-                      <div className="w-45 h-5 bg-[#e4e4e7]"></div>
-                      <div className="w-45 h-5 bg-[#e4e4e7]"></div>
-                      <div className="w-45 h-5 bg-[#e4e4e7]"></div>
-                      <div className="w-45 h-5 bg-[#e4e4e7]"></div>
-                      <div className="w-45 h-5 bg-[#e4e4e7]"></div>
+                Object.entries(groupedHistory).map(([dateKey, items]: any) => (
+                  <div key={dateKey} className="mb-5">
+                    <p className="text-xs font-semibold text-gray-500 mb-2">
+                      {getDateLabel(dateKey)}
+                    </p>
+                    <div className="flex flex-col gap-1">
+                      {items.map((h: any) => {
+                        const isActive = activeId === h.id;
+                        return (
+                          <button
+                            key={h.id}
+                            onClick={() =>
+                              onSelectHistory({
+                                id: h.id,
+                                expandedTitle: h.title,
+                                expandedContent: h.content,
+                              })
+                            }
+                            className={`text-left font-semibold p-2 rounded transition cursor-pointer truncate ${
+                              isActive
+                                ? "bg-black text-white"
+                                : "hover:bg-gray-100 text-black"
+                            }`}
+                          >
+                            {h.title}
+                          </button>
+                        );
+                      })}
                     </div>
-                  ) : (
-                    Object.entries(groupedHistory).map(
-                      ([dateKey, items]: any) => (
-                        <div key={dateKey} className="mb-5">
-                          <p className="text-xs font-semibold text-gray-500 mb-2">
-                            {getDateLabel(dateKey)}
-                          </p>
-                          <div className="flex flex-col gap-1">
-                            {items.map((h: any) => {
-                              const isActive = activeId === h.id;
-                              return (
-                                <button
-                                  key={h.id}
-                                  onClick={() =>
-                                    onSelectHistory({
-                                      id: h.id,
-                                      expandedTitle: h.title,
-                                      expandedContent: h.content,
-                                    })
-                                  }
-                                  className={`text-left p-2 rounded transition cursor-pointer ${
-                                    isActive
-                                      ? "bg-black text-white"
-                                      : "hover:bg-gray-100 text-black"
-                                  }`}
-                                >
-                                  <p className="text-sm font-semibold truncate">
-                                    {h.title}
-                                  </p>
-                                </button>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      )
-                    )
-                  )}
-                </div>
+                  </div>
+                ))
               )}
             </div>
           </motion.div>
