@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { SideBar } from "../_components/icons/icon";
 import { motion, AnimatePresence } from "framer-motion";
-import { useUser } from "@clerk/nextjs"; // Хэрэглэгчийн нэвтрэлт шалгах
+import { useUser } from "@clerk/nextjs";
 
 export const SideBarSection = ({
   history,
@@ -28,13 +28,14 @@ export const SideBarSection = ({
     if (dateKey === yesterday) return "Yesterday";
     return dateKey;
   };
-
-  const groupedHistory = history.reduce((acc: any, item) => {
-    const key = formatDateKey(new Date(item.createdAt));
-    if (!acc[key]) acc[key] = [];
-    acc[key].push(item);
-    return acc;
-  }, {});
+  const groupedHistory = Array.isArray(history)
+    ? history.reduce((acc: any, item) => {
+        const key = formatDateKey(new Date(item.createdAt));
+        if (!acc[key]) acc[key] = [];
+        acc[key].push(item);
+        return acc;
+      }, {})
+    : {};
 
   return (
     <div className="relative">
@@ -75,7 +76,7 @@ export const SideBarSection = ({
                   </p>
                 </div>
               ) : history.length === 0 ? (
-                <p className="text-sm text-gray-500 mt-10 text-center">
+                <p className="text-sm text-black mt-10 text-center">
                   No history yet
                 </p>
               ) : loading ? (
