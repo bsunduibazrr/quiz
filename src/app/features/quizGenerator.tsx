@@ -1,7 +1,6 @@
 "use client";
 import { useState } from "react";
 import { AiLogo, SummaryLogo } from "../_components/icons/icon";
-import { log } from "console";
 
 export const QuizGenerator = ({
   setExpandedData,
@@ -17,14 +16,16 @@ export const QuizGenerator = ({
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [errors, setErrors] = useState<{ title?: string; content?: string }>(
-    {}
+    {},
   );
+  const [apiError, setApiError] = useState<string | null>(null);
 
   const handleGenerate = async () => {
-    let newErrors: any = {};
+    const newErrors: { title?: string; content?: string } = {};
     if (!title.trim()) newErrors.title = "Please enter an article title.";
     if (!content.trim()) newErrors.content = "Please enter article content.";
     setErrors(newErrors);
+    setApiError(null);
     if (Object.keys(newErrors).length > 0) return;
 
     setLoading(true);
@@ -37,15 +38,24 @@ export const QuizGenerator = ({
       });
 
       const data = await res.json();
-      console.log(data, "data");
+
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to generate summary");
+      }
+
+      if (!data.expandedTitle || !data.expandedContent) {
+        throw new Error("Invalid response from server");
+      }
 
       setExpandedData({
         expandedTitle: data.expandedTitle,
-        expandedContent: data.expandedContent ?? "",
+        expandedContent: data.expandedContent,
       });
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      alert("Failed to generate summary");
+      setApiError(
+        err.message || "Failed to generate summary. Please try again.",
+      );
     } finally {
       setLoading(false);
     }
@@ -66,6 +76,12 @@ export const QuizGenerator = ({
           Your articles will be saved in the sidebar for future reference.
         </p>
 
+        {apiError && (
+          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md">
+            <p className="text-red-600 text-sm">{apiError}</p>
+          </div>
+        )}
+
         <div className="flex flex-col gap-1 mb-4">
           <div className="flex gap-1 items-center">
             <SummaryLogo />
@@ -78,7 +94,7 @@ export const QuizGenerator = ({
             placeholder="Enter a title for your article..."
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            className={`text-black border rounded-md w-full h-10 sm:h-11 px-3 outline-black  ${
+            className={`text-black border rounded-md w-full h-10 sm:h-11 px-3 outline-black ${
               errors.title ? "border-red-500" : "border-[#D4D4D8]"
             }`}
           />
@@ -110,13 +126,14 @@ export const QuizGenerator = ({
         <div className="flex justify-end">
           <button
             onClick={handleGenerate}
+            disabled={loading}
             className={`w-full sm:w-44 h-10 sm:h-11 rounded-lg font-semibold text-white transition-transform duration-300 transform ${
               loading
-                ? "bg-gray-300 cursor-not-allowed"
+                ? "bg-gray-400 cursor-not-allowed"
                 : "bg-black cursor-pointer hover:-translate-y-1 hover:scale-105 hover:shadow-xl active:scale-100 active:translate-y-0"
             }`}
           >
-            {loading ? "Generating summary..." : "Generate Summary"}
+            {loading ? "Generating..." : "Generate Summary"}
           </button>
         </div>
       </div>

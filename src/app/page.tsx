@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { QuizGenerator } from "./features/quizGenerator";
 import { SideBarSection } from "./features/sideBar";
 import { SummerizedSection } from "./features/summarizedArticle";
@@ -16,11 +16,39 @@ export default function Page() {
   const [showQuickTest, setShowQuickTest] = useState(false);
   const [quizQuestions, setQuizQuestions] = useState<any[]>([]);
   const [history, setHistory] = useState<any[]>([]);
-  useEffect(() => {
-    fetch("/api/history")
-      .then((r) => r.json())
-      .then(setHistory);
+  const [historyLoading, setHistoryLoading] = useState(true);
+
+  const fetchHistory = useCallback(async () => {
+    setHistoryLoading(true);
+    try {
+      const res = await fetch("/api/history");
+      const data = await res.json();
+      setHistory(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error("History fetch error:", err);
+      setHistory([]);
+    } finally {
+      setHistoryLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    fetchHistory();
+  }, [fetchHistory]);
+
+  const handleDeleteHistory = async (id: string) => {
+    try {
+      const res = await fetch(`/api/history?id=${id}`, { method: "DELETE" });
+      if (res.ok) {
+        setHistory((prev) => prev.filter((item) => item.id !== id));
+        if (selectedHistory) {
+          setSelectedHistory(null);
+        }
+      }
+    } catch (err) {
+      console.error("Delete error:", err);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-white">
@@ -28,12 +56,15 @@ export default function Page() {
       <div className="flex">
         <SideBarSection
           history={history}
+          historyLoading={historyLoading}
           onSelectHistory={(item) => {
             setSelectedHistory({
               expandedTitle: item.expandedTitle ?? item.title ?? "",
               expandedContent: item.expandedContent ?? item.content ?? "",
             });
           }}
+          onDeleteHistory={handleDeleteHistory}
+          onRefresh={fetchHistory}
           activeId={selectedHistory?.expandedTitle || "no title"}
         />
 

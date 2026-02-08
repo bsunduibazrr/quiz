@@ -33,13 +33,13 @@ export async function POST(req: Request) {
             {
               text: `
 Generate 5-8 multiple choice quiz questions from the article below.
-
+ 
 Rules:
 - Each question must have 4 options
 - Answer must exactly match one option
 - Return ONLY valid JSON
 - No explanations, no markdown
-
+ 
 JSON format:
 {
   "questions": [
@@ -50,7 +50,7 @@ JSON format:
     }
   ]
 }
-
+ 
 Article:
 ${body.content}
 `,
@@ -69,7 +69,7 @@ ${body.content}
     if (!text) {
       return NextResponse.json(
         { error: "AI hooson butsasan" },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -87,30 +87,36 @@ ${body.content}
         questions: Array.isArray(parsed.questions)
           ? parsed.questions
           : Array.isArray(parsed.question)
-          ? parsed.question
-          : [],
+            ? parsed.question
+            : [],
       };
     } catch (e) {
       return NextResponse.json(
         { error: "AI json buru format" },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
     if (!quizJson.questions.length) {
       return NextResponse.json({ error: "questions hoosn" }, { status: 500 });
     }
-    await prisma.quiz.createMany({
-      data: quizJson.questions.map((q) => ({
-        question: q.question,
-        options: q.options,
-        answer: q.answer,
-        articleId: body.articleId!,
-      })),
-    });
-    if (!body.articleId) {
-      throw new Error("articleId bhgui");
+
+    // Try to save to database, but don't fail if it doesn't work
+    if (body.articleId) {
+      try {
+        await prisma.quiz.createMany({
+          data: quizJson.questions.map((q) => ({
+            question: q.question,
+            options: q.options,
+            answer: q.answer,
+            articleId: body.articleId!,
+          })),
+        });
+      } catch (dbErr) {
+        console.warn("Failed to save quiz to database:", dbErr);
+      }
     }
+
     return NextResponse.json({ questions: quizJson.questions });
   } catch (err) {
     console.error("quiz error:", err);

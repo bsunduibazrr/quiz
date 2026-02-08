@@ -1,23 +1,36 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { SideBar } from "../_components/icons/icon";
+import { useRef, useState } from "react";
+import { SideBar, RefreshLogo, TrashLogo } from "../_components/icons/icon";
 import { motion, AnimatePresence } from "framer-motion";
 import { useUser } from "@clerk/nextjs";
 
 export const SideBarSection = ({
   history,
+  historyLoading,
   onSelectHistory,
+  onDeleteHistory,
+  onRefresh,
   activeId,
 }: {
   history: any[];
+  historyLoading: boolean;
   onSelectHistory: (h: any) => void;
+  onDeleteHistory: (id: string) => void;
+  onRefresh: () => void;
   activeId: string | null;
 }) => {
   const [open, setOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const ref = useRef<HTMLDivElement | null>(null);
   const { isSignedIn } = useUser();
+
+  const handleDelete = async (e: React.MouseEvent, id: string) => {
+    e.stopPropagation();
+    setDeletingId(id);
+    await onDeleteHistory(id);
+    setDeletingId(null);
+  };
 
   const formatDateKey = (date: Date) => date.toLocaleDateString("en-CA");
 
@@ -28,6 +41,7 @@ export const SideBarSection = ({
     if (dateKey === yesterday) return "Yesterday";
     return dateKey;
   };
+
   const groupedHistory = Array.isArray(history)
     ? history.reduce((acc: any, item) => {
         const key = formatDateKey(new Date(item.createdAt));
@@ -60,12 +74,24 @@ export const SideBarSection = ({
           >
             <div className="flex justify-between items-center mb-4">
               <p className="text-lg font-bold text-black">History</p>
-              <button
-                onClick={() => setOpen(false)}
-                className="w-6 h-6 border rounded-full text-black cursor-pointer"
-              >
-                ✕
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={onRefresh}
+                  disabled={historyLoading}
+                  className={`w-6 h-6 border rounded-full text-black cursor-pointer flex justify-center items-center ${
+                    historyLoading ? "animate-spin" : ""
+                  }`}
+                  title="Refresh"
+                >
+                  <RefreshLogo />
+                </button>
+                <button
+                  onClick={() => setOpen(false)}
+                  className="w-6 h-6 border rounded-full text-black cursor-pointer"
+                >
+                  ✕
+                </button>
+              </div>
             </div>
 
             <div className="max-h-[85%] overflow-y-auto">
@@ -75,11 +101,7 @@ export const SideBarSection = ({
                     Please log in to see your history
                   </p>
                 </div>
-              ) : history.length === 0 ? (
-                <p className="text-sm text-black mt-10 text-center">
-                  No history yet
-                </p>
-              ) : loading ? (
+              ) : historyLoading ? (
                 <div className="flex flex-col gap-2">
                   {[...Array(5)].map((_, i) => (
                     <div
@@ -88,6 +110,10 @@ export const SideBarSection = ({
                     ></div>
                   ))}
                 </div>
+              ) : history.length === 0 ? (
+                <p className="text-sm text-black mt-10 text-center">
+                  No history yet
+                </p>
               ) : (
                 Object.entries(groupedHistory).map(([dateKey, items]: any) => (
                   <div key={dateKey} className="mb-5">
@@ -96,25 +122,39 @@ export const SideBarSection = ({
                     </p>
                     <div className="flex flex-col gap-1">
                       {items.map((h: any) => {
-                        const isActive = activeId === h.id;
+                        const isActive = activeId === h.title;
+                        const isDeleting = deletingId === h.id;
                         return (
-                          <button
+                          <div
                             key={h.id}
-                            onClick={() =>
-                              onSelectHistory({
-                                id: h.id,
-                                expandedTitle: h.title,
-                                expandedContent: h.content,
-                              })
-                            }
-                            className={`text-left font-semibold p-2 rounded transition cursor-pointer truncate ${
-                              isActive
-                                ? "bg-black text-white"
-                                : "hover:bg-gray-100 text-black"
-                            }`}
+                            className="group relative flex items-center"
                           >
-                            {h.title}
-                          </button>
+                            <button
+                              onClick={() =>
+                                onSelectHistory({
+                                  id: h.id,
+                                  expandedTitle: h.title,
+                                  expandedContent: h.content,
+                                })
+                              }
+                              disabled={isDeleting}
+                              className={`flex-1 text-left font-semibold p-2 rounded transition cursor-pointer truncate ${
+                                isActive
+                                  ? "bg-black text-white"
+                                  : "hover:bg-gray-100 text-black"
+                              } ${isDeleting ? "opacity-50" : ""}`}
+                            >
+                              {h.title}
+                            </button>
+                            <button
+                              onClick={(e) => handleDelete(e, h.id)}
+                              disabled={isDeleting}
+                              className="cursor-pointer p-1 ml-1 rounded "
+                              title="Delete"
+                            >
+                              <TrashLogo />
+                            </button>
+                          </div>
                         );
                       })}
                     </div>
